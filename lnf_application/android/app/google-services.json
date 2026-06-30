@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "735821424848",
+    "project_id": "hpnm-lost-and-found",
+    "storage_bucket": "hpnm-lost-and-found.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735821424848:android:9496fed1a7e32f536096d5",
+        "android_client_info": {
+          "package_name": "com.hpnm.lost_and_found"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn0A6KDlOmyrQCM8zrK4wjlOdSSyGPOJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
