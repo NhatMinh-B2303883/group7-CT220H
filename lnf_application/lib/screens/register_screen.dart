@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,11 +17,75 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-
   String? _confirmPasswordError;
+
+  // Biến kiểm soát trạng thái xoay xoay khi đang tạo tài khoản
+  bool _isLoading = false;
+  // Hàm xử lý đăng ký tài khoản gửi lên Firebase
+  void _register() async {
+    setState(() {
+      _isLoading = true; // Bật vòng xoay loading
+    });
+
+    try {
+      // Lệnh thần thánh của Firebase để tạo tài khoản bằng Email & Password
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Nếu thành công, hiện thông báo màu xanh
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký tài khoản thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Quay trở lại màn hình Đăng nhập
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      // Nếu Firebase trả về lỗi, mình sẽ bắt lỗi và dịch sang tiếng Việt cho user dễ hiểu
+      String message = 'Đã có lỗi xảy ra. Vui lòng thử lại!';
+      if (e.code == 'weak-password') {
+        message = 'Mật khẩu quá yếu (phải từ 6 ký tự trở lên)!';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'Email này đã được đăng ký bởi một sinh viên khác!';
+      } else if (e.code == 'invalid-email') {
+        message = 'Định dạng email không hợp lệ!';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      // Bắt các lỗi hệ thống khác nếu có
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Tắt vòng xoay loading dù thành công hay thất bại
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+
+    bool isFormValid = _nameController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty &&
+        _confirmPasswordError == null;
+
     return Scaffold(
       backgroundColor: Colors.white,
       // AppBar tạo ra nút "Quay lại" tự động ở góc trái
@@ -57,6 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // 1. Ô nhập Họ và Tên
                 TextField(
                   controller: _nameController,
+                  onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: 'Full name',
                     prefixIcon: const Icon(Icons.person_outline),
@@ -69,6 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: 'Student Email',
                     prefixIcon: const Icon(Icons.email_outlined),
@@ -147,30 +214,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 32),
 
                 // Nút bấm Đăng ký
-                ElevatedButton(
-                  onPressed: () {
-                    // Nếu vẫn đang có lỗi đỏ, hoặc người dùng chưa thèm nhập ô xác nhận
-                    if (_confirmPasswordError != null || _confirmPasswordController.text.isEmpty) {
-                      // Có thể in ra log, hoặc dùng SnackBar hiện thông báo nhỏ
-                      print('Chưa nhập đúng mật khẩu, không cho đăng ký!');
-                      return; // Dừng lại, không chạy đoạn code bên dưới
-                    }
-
-                    // Nếu mọi thứ hoàn hảo
-                    print('Cho phép đăng ký với email: ${_emailController.text}');
-                    // TODO: Gọi Firebase Auth ở đây
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text(
-                    'SIGN UP',
-                    style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
+            ElevatedButton(
+              // Nếu đang loading thì chặn bấm (truyền null), ngược lại form hợp lệ thì cho bấm
+              onPressed: _isLoading ? null : (isFormValid ? _register : null),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                disabledBackgroundColor: Colors.grey.shade300,
+                disabledForegroundColor: Colors.grey.shade500,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              // Nếu đang loading thì hiện vòng tròn xoay, ngược lại hiện chữ ĐĂNG KÝ NGAY
+              child: _isLoading
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+                  : const Text(
+                'SIGN UP',
+                style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            )],
             ),
           ),
         ),

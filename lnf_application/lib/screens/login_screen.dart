@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lost_and_found/screens/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,9 +15,71 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   // Biến lưu trạng thái ẩn/ hiện mật khẩu
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
+
+  // Hàm xử lý Đăng nhập
+  void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Gọi Firebase kiểm tra tài khoản
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // TODO: Đăng nhập thành công thì chuyển hướng sang Home Screen
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => const HomeScreen()),
+        // );
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'An error occurred. Please try again!';
+
+      // Bắt các lỗi cụ thể từ Firebase
+      if (e.code == 'user-not-found' || e.code == 'invalid-email') {
+        message = 'Account does not exist!';
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        message = 'Incorrect password!';
+      } else if (e.code == 'user-disabled') {
+        message = 'This account has been disabled!';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+
+    bool isFormValid = _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea( // Giúp nội dung không bị lẹm vào tai thỏ/camera
@@ -47,6 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Ô nhập Email
               TextField(
                 controller: _emailController,
+                onChanged: (value) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
@@ -61,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible, // Ẩn chữ thành dấu chấm đen
+                onChanged: (value) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
@@ -84,18 +149,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Nút Đăng nhập
               ElevatedButton(
-                onPressed: () {
-                  // Sau này mình sẽ viết code kết nối Firebase vào đây
-                  print('User try lo login with Email: ${_emailController.text}');
-                },
+                // SỬA LẠI KHÚC NÀY:
+                onPressed: _isLoading ? null : (isFormValid ? _login : null),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Màu nền nút
+                  backgroundColor: Colors.blue,
+                  disabledBackgroundColor: Colors.grey.shade300, // Thêm màu khi nút mờ
+                  disabledForegroundColor: Colors.grey.shade500,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
+                // THÊM HIỆU ỨNG LOADING VÀO ĐÂY:
+                child: _isLoading
+                    ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+                    : const Text(
                   'Login',
                   style: TextStyle(
                       fontSize: 16,
