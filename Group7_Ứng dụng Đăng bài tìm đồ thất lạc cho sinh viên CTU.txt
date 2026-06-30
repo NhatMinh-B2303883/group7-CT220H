@@ -1,0 +1,33 @@
+Mục tiêu ứng dung:
+ Xây dựng một nền tảng di động (Android / iOS) giúp sinh viên dễ dàng báo cáo đồ đạc bị mất hoặc đăng tin nhặt được đồ thất lạc. Ứng dung giúp kết nối nhanh chóng giữa người mất và người nhặt thông qua bảng tin.
+
+Chức năng chính và Ý tưởng thực hiện
+ - Chức năng quản lí tài khoản
+  + Mô tả: Người dùng cần đăng ký và đăng nhập thông qua Email để có thể truy cập ứng dụng.
+  + Ý tưởng: Sử dụng Firebase Authentication -> xử lý luồng đăng nhập/ đăng ký.
+
+ - Chức năng Bảng tin thời gian thực
+  + Mô tả: Màn hình chính của ứng dụng hiển thị danh sách các bài đăng chia làm hai phân mục: "Đồ mất" và "Nhặt được đồ"
+  + Ý tưởng: Sử dụng Cloud Firestore để lưu trữ các bài viết dưới dạng Document.
+
+ - Chức năng đăng bài:
+  + Mô tả: Người dùng tạo bài viết mới. Form đăng tin bao gồm: Hình ảnh vật phẩm (nếu có), Tên vật phẩm, Danh mục (Giấy tờ, Đồ điện tử, Khác...), Vị trí thất lạc/nhặt được (Khu II, Nhà học DI, Thư viện...), và Mô tả chi tiết.
+  + Ý tưởng: 
+     Tích hợp thư viện image_picker để gọi Camera hoặc mở thư viện ảnh trên điện thoại.
+     Ảnh người dùng chụp sẽ được upload lên Firebase Storage để lấy đường dẫn URL tĩnh.
+     Gom URL ảnh cùng các thông tin văn bản thành một đối tượng JSON và đẩy lên Collection posts trong Firestore.
+
+ - Chức năng Quản lý cá nhân & Trạng thái bài đăng
+  + Mô tả: Người dùng có trang cá nhân xem lại những tin mình đã đăng. Cho phép thao tác thay đổi trạng thái bài viết thành "Đã giải quyết" (Resolved) để ẩn bài khỏi bảng tin chung khi đã tìm thấy đồ vật.
+  + Ý tưởng: 
+     Truy vấn Firestore kết hợp với bộ lọc where('userId', isEqualTo: currentUserId)
+     Sử dụng lệnh update() của Firestore để thay đổi trường status của bài viết khi người dùng nhấn nút xác nhận tìm thấy đồ
+
+ - Chức năng tìm kiếm và lọc
+  + Mô tả: Giúp sinh viên tìm nhanh đồ của mình dựa trên từ khóa hoặc danh mục.
+  + Ý tưởng: 
+     Sử dụng thanh SearchBar trên giao diện, kết hợp với các Chip (nút bấm nhỏ) để chọn danh mục.
+     Dùng các truy vấn nâng cao của Firestore để lọc dữ liệu trực tiếp từ máy chủ trả về, giúp tối ưu hóa dung lượng mạng
+
+
+*Nếu hoàn thành sớm: Mong muốn triển khai phạm vi rộng hơn ngoài CTU.
