@@ -27,7 +27,4 @@ Chức năng chính và Ý tưởng thực hiện
   + Mô tả: Giúp sinh viên tìm nhanh đồ của mình dựa trên từ khóa hoặc danh mục.
   + Ý tưởng: 
      Sử dụng thanh SearchBar trên giao diện, kết hợp với các Chip (nút bấm nhỏ) để chọn danh mục.
-     Dùng các truy vấn nâng cao của Firestore để lọc dữ liệu trực tiếp từ máy chủ trả về, giúp tối ưu hóa dung lượng mạng
-
-
-*Nếu hoàn thành sớm: Mong muốn triển khai phạm vi rộng hơn ngoài CTU.
+     Dùng các truy vấn nâng cao của Firestore để lọc dữ liệu trực tiếp từ máy chủ trả về, giúp tối ưu hóa dung lượng mạng.
